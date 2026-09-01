@@ -1,0 +1,35 @@
+#!/bin/sh
+# Reject commit subjects that release-please cannot read:
+# enable in a fresh clone with:  git config core.hooksPath .githooks
+
+subject=$(sed -n '1p' "$1")
+
+case "$subject" in
+	'Merge '*|'Revert '*|'fixup!'*|'squash!'*|'#'*|'') exit 0 ;;
+esac
+
+types='build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test'
+
+if ! printf '%s' "$subject" | grep -Eq "^($types)(\([a-z0-9._/-]+\))?!?: .+"; then
+	cat >&2 <<EOF
+✗ Not a conventional commit:
+
+    $subject
+
+  Use:  <type>[(scope)][!]: <description>
+  Type: $(printf '%s' "$types" | tr '|' ' ')
+
+  feat: add a compare mode          -> minor bump
+  fix(ui): stop the splash overflow -> patch bump
+  feat!: drop the v1 config format  -> major bump
+  chore: tidy go.mod                -> no bump
+
+  Nothing else reaches the changelog or moves the version.
+EOF
+	exit 1
+fi
+
+if [ "${#subject}" -gt 72 ]; then
+	echo "✗ Subject is ${#subject} chars; keep it under 72." >&2
+	exit 1
+fi

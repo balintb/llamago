@@ -1,0 +1,59 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go build ./...
+      - run: go vet ./...
+      # -short skips the tests that need a live Ollama server.
+      - run: go test -short ./...
+
+  # The version is computed from commit subjects, so a subject the tooling
+  # cannot parse is a change that silently never ships. The local commit-msg
+  # hook catches these first; this is the backstop for a clone without
+  # core.hooksPath set.
+  commits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate commit subjects
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -eu
+          base=$BASE
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] \
+            || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            base=$(git rev-parse --verify --quiet HEAD~1 || true)
+          fi
+          # An initial import has no base at all: the first push to a branch reports
+          # one of all zeros and there is no HEAD~1 behind it. Check everything
+          # reachable from HEAD rather than failing on the range itself.
+          range=HEAD
+          if [ -n "$base" ]; then
+            range="$base..HEAD"
+          fi
+          rc=0
+          for sha in $(git rev-list "$range"); do
+            git log -1 --format=%B "$sha" > /tmp/msg
+            if ! .githooks/commit-msg /tmp/msg; then
+              echo "  in commit $sha" >&2
+              rc=1
+            fi
+          done
+          exit $rc

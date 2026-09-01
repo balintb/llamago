@@ -1,0 +1,42 @@
+name: Bug report
+description: Something llamago does that it should not
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, and what llamago did instead of what you expected.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: llamago version
+      description: The output of `llamago -version`.
+      placeholder: v0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: terminal
+    attributes:
+      label: Terminal and OS
+      description: The emulator, its `$TERM`, and the OS. Rendering and key bugs are usually one of those three.
+      placeholder: Ghostty, TERM=xterm-ghostty, macOS 15
+    validations:
+      required: true
+
+  - type: input
+    id: ollama
+    attributes:
+      label: Ollama version and model
+      description: Leave blank if the bug has nothing to do with a model.
+      placeholder: 0.12.3, llama3.2:3b
+
+  - type: textarea
+    id: screen
+    attributes:
+      label: What it looked like
+      description: A screenshot or a paste of the frame, for anything on screen. A layout bug is hard to picture from a description.

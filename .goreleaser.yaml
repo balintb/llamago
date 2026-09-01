@@ -1,0 +1,35 @@
+version: 2
+
+project_name: llamago
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux]
+    goarch: [amd64, arm64]
+    # The tag is the only source of truth for the version. resolveVersion falls
+    # back to the module version and then the VCS revision, so an unstamped
+    # build still reports something real, but release artifacts get it here.
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+
+checksum:
+  name_template: checksums.txt
+
+release:
+  # release-please has already created the release for this tag; upload the
+  # binaries onto it instead of failing on the collision.
+  mode: append
+
+changelog:
+  # CHANGELOG.md is release-please's job, generated from the same commits.
+  disable: true
