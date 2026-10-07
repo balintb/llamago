@@ -45,3 +45,9 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Renders the prebuilt-binary formula from dist/checksums.txt and pushes it
+      # to balintb/homebrew-tap.
+      - name: Bump tap formula
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }} # PAT with contents:write on homebrew-tap
+        run: scripts/bump-formula.sh "${{ needs.release-please.outputs.tag }}"

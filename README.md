@@ -44,7 +44,13 @@ TUI for [Ollama](https://ollama.com): chat with local models, manage what's inst
 
 ## Install
 
-Requires Go 1.26 or newer.
+With Homebrew:
+
+```sh
+brew install balintb/tap/llamago
+```
+
+Or with Go 1.26 or newer:
 
 ```sh
 go install github.com/balintb/llamago@latest
